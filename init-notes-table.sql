@@ -23,11 +23,3 @@ CREATE POLICY "Deny select for anon" ON notes
 CREATE POLICY "Deny select for authenticated" ON notes
   FOR SELECT
   USING (auth.uid() IS NULL);
-
--- 4. 학습용 데이터 (owner_id는 null - 학생이 실제 운영 시 채우기)
-INSERT INTO notes (owner_id, title, content) VALUES
-  (NULL, '과제', '실습용 가상 과제 기록'),
-  (NULL, '포트폴리오', '실습용 가상 포트폴리오 기록'),
-  (NULL, '아침 리추얼', '실습용 가상 리추얼 기록'),
-  (NULL, '훈련 행정 자료', '실습용 가상 행정 기록')
-ON CONFLICT DO NOTHING;
