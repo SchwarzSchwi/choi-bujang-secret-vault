@@ -16,11 +16,13 @@
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
-    .auth { margin: 26px 0; padding: 18px; border: 1px solid #51667c; border-radius: 14px; background: #1a2a3d; }
-    .auth form { display: grid; gap: 10px; }
-    .auth input { padding: 10px 12px; border-radius: 8px; border: 1px solid #51667c; background: #101a28; color: #ecf4ff; font-size: 16px; }
-    .auth button { padding: 10px 14px; border-radius: 8px; border: 0; background: #8ad8df; color: #101a28; font-weight: 700; font-size: 16px; cursor: pointer; }
-    .auth button:disabled { opacity: .6; cursor: wait; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .auth, .editor { margin: 26px 0; padding: 18px; border: 1px solid #51667c; border-radius: 14px; background: #1a2a3d; }
+    .auth form, .editor form { display: grid; gap: 10px; }
+    .auth input, .editor input, .editor textarea { padding: 10px 12px; border-radius: 8px; border: 1px solid #51667c; background: #101a28; color: #ecf4ff; font-size: 16px; font-family: inherit; }
+    button { padding: 10px 14px; border-radius: 8px; border: 0; background: #8ad8df; color: #101a28; font-weight: 700; font-size: 16px; cursor: pointer; }
+    button.secondary { background: #51667c; color: #ecf4ff; }
+    button:disabled { opacity: .6; cursor: wait; }
     .auth-status { margin: 0 0 12px; font-weight: 700; }
     .auth-error { margin: 10px 0 0; color: #ff9fb0; font-size: 15px; min-height: 1.2em; }
     [hidden] { display: none !important; }
@@ -28,9 +30,9 @@
 </head>
 <body>
   <main>
-    <div class="eyebrow">BYTE BACK · 1단계 피해 확인</div>
+    <div class="eyebrow">BYTE BACK · 2단계 로그인 메모</div>
     <h1>점령된 자료실</h1>
-    <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
+    <p>로그인한 사람만 가상 메모를 보고 추가·수정·삭제할 수 있습니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
 
     <section class="auth" aria-label="로그인">
       <p class="auth-status" id="auth-status">로그아웃 상태</p>
@@ -43,13 +45,24 @@
       <p class="auth-error" id="auth-error" role="alert"></p>
     </section>
 
-    <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 공개 범위를 확인하고, 다음 제작 단계에서 접근을 차례로 막아 주세요.</div>
-    <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
+    <section class="editor" id="editor" aria-label="메모 편집" hidden>
+      <form id="note-form">
+        <input id="note-title" type="text" placeholder="제목" maxlength="200" required>
+        <textarea id="note-body" placeholder="내용 (가상 자료만 적어 주세요)" rows="3"></textarea>
+        <div class="actions">
+          <button type="submit" id="note-save">메모 추가</button>
+          <button type="button" class="secondary" id="note-cancel" hidden>수정 취소</button>
+        </div>
+      </form>
+      <p class="auth-error" id="note-error" role="alert"></p>
+    </section>
+
+    <ul id="notes" aria-live="polite"><li>로그인하면 메모가 보입니다.</li></ul>
   </main>
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    // 공개용 값입니다 (Project URL / publishable key). 아래 값을 채워 주세요.
+    // 공개용 값입니다 (Project URL / publishable key).
     const SUPABASE_URL = 'https://rxzbjnkeaopvjhojdgnx.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TwAzUuWpiXnv8R07SGZSdg_ll4B1y2g';
 
@@ -60,18 +73,120 @@
     const logoutBtn = document.querySelector('#logout-btn');
     const statusEl = document.querySelector('#auth-status');
     const errorEl = document.querySelector('#auth-error');
+    const editor = document.querySelector('#editor');
+    const noteForm = document.querySelector('#note-form');
+    const titleInput = document.querySelector('#note-title');
+    const bodyInput = document.querySelector('#note-body');
+    const saveBtn = document.querySelector('#note-save');
+    const cancelBtn = document.querySelector('#note-cancel');
+    const noteError = document.querySelector('#note-error');
+    const list = document.querySelector('#notes');
+
+    let token = null;
+    let editingId = null;
+
+    function message(text) {
+      const item = document.createElement('li');
+      item.textContent = text;
+      list.replaceChildren(item);
+    }
+
+    async function api(path, options = {}) {
+      const headers = { Authorization: `Bearer ${token}` };
+      if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+      return fetch(path, { cache: 'no-store', ...options, headers });
+    }
+
+    function resetEditor() {
+      editingId = null;
+      titleInput.value = '';
+      bodyInput.value = '';
+      saveBtn.textContent = '메모 추가';
+      cancelBtn.hidden = true;
+    }
+
+    async function loadNotes() {
+      if (!token) { message('로그인하면 메모가 보입니다.'); return; }
+      try {
+        const response = await api('/api/notes');
+        if (!response.ok) throw new Error('메모를 읽을 수 없습니다.');
+        const notes = await response.json();
+        if (!Array.isArray(notes)) throw new Error('자료 형식이 맞지 않습니다.');
+        if (notes.length === 0) { message('메모가 없습니다.'); return; }
+        list.replaceChildren(...notes.map(note => {
+          const item = document.createElement('li');
+          const title = document.createElement('strong');
+          const body = document.createElement('span');
+          title.textContent = note.title;
+          body.textContent = note.body;
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'secondary';
+          edit.textContent = '수정';
+          edit.addEventListener('click', () => {
+            editingId = note.id;
+            titleInput.value = note.title;
+            bodyInput.value = note.body;
+            saveBtn.textContent = '수정 저장';
+            cancelBtn.hidden = false;
+            titleInput.focus();
+          });
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'secondary';
+          del.textContent = '삭제';
+          del.addEventListener('click', async () => {
+            noteError.textContent = '';
+            const r = await api(`/api/notes/${encodeURIComponent(note.id)}`, { method: 'DELETE' });
+            if (!r.ok) noteError.textContent = '삭제하지 못했습니다.';
+            if (editingId === note.id) resetEditor();
+            await loadNotes();
+          });
+          actions.append(edit, del);
+          item.append(title, body, actions);
+          return item;
+        }));
+      } catch (error) {
+        message(error.message);
+      }
+    }
 
     function render(session) {
+      token = session?.access_token ?? null;
       if (session) {
         statusEl.textContent = `로그인됨: ${session.user.email}`;
         form.hidden = true;
         logoutBtn.hidden = false;
+        editor.hidden = false;
       } else {
         statusEl.textContent = '로그아웃 상태';
         form.hidden = false;
         logoutBtn.hidden = true;
+        editor.hidden = true;
+        resetEditor();
       }
+      loadNotes();
     }
+
+    noteForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      noteError.textContent = '';
+      saveBtn.disabled = true;
+      const payload = JSON.stringify({ title: titleInput.value.trim(), body: bodyInput.value });
+      const response = editingId
+        ? await api(`/api/notes/${encodeURIComponent(editingId)}`, { method: 'PUT', body: payload })
+        : await api('/api/notes', { method: 'POST', body: payload });
+      saveBtn.disabled = false;
+      if (!response.ok) {
+        noteError.textContent = '저장하지 못했습니다.';
+        return;
+      }
+      resetEditor();
+      await loadNotes();
+    });
+    cancelBtn.addEventListener('click', resetEditor);
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       errorEl.textContent = 'Supabase Project URL과 publishable key가 설정되지 않았습니다.';
@@ -104,27 +219,6 @@
         const { error } = await supabase.auth.signOut();
         if (error) errorEl.textContent = `로그아웃 실패: ${error.message}`;
       });
-    }
-
-    const list = document.querySelector('#notes');
-    try {
-      const response = await fetch('/api/notes', { cache: 'no-store' });
-      if (!response.ok) throw new Error('자료를 읽을 수 없습니다.');
-      const data = await response.json();
-      if (!Array.isArray(data.notes)) throw new Error('자료 형식이 맞지 않습니다.');
-      list.replaceChildren(...data.notes.map(note => {
-        const item = document.createElement('li');
-        const title = document.createElement('strong');
-        const content = document.createElement('span');
-        title.textContent = note.title;
-        content.textContent = note.content;
-        item.append(title, content);
-        return item;
-      }));
-    } catch (error) {
-      const item = document.createElement('li');
-      item.textContent = error.message;
-      list.replaceChildren(item);
     }
   </script>
 </body>
