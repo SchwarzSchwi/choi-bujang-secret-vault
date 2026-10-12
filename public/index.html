@@ -16,6 +16,12 @@
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
+    #auth { margin: 22px 0; padding: 16px; border: 1px solid #51667c; border-radius: 14px; background: #1a2a3d; }
+    #auth form { display: grid; gap: 10px; }
+    #auth input, #auth button { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #51667c; background: #101a28; color: #ecf4ff; }
+    #auth button { cursor: pointer; background: #2a5d66; }
+    #auth [hidden] { display: none; }
+    #auth-message { margin: 8px 0 0; font-size: 15px; color: #ffb3c0; }
   </style>
 </head>
 <body>
@@ -23,10 +29,58 @@
     <div class="eyebrow">BYTE BACK · 1단계 피해 확인</div>
     <h1>점령된 자료실</h1>
     <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
+    <section id="auth" aria-label="로그인">
+      <form id="login-form" autocomplete="on">
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="이메일" aria-label="이메일" required>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호" required>
+        <button type="submit">로그인</button>
+      </form>
+      <div id="session-view" hidden>
+        <span id="session-email"></span>
+        <button id="logout" type="button">로그아웃</button>
+      </div>
+      <p id="auth-message" role="alert" aria-live="polite"></p>
+    </section>
     <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 공개 범위를 확인하고, 다음 제작 단계에서 접근을 차례로 막아 주세요.</div>
     <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
   </main>
   <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const supabase = createClient('https://rxzbjnkeaopvjhojdgnx.supabase.co', 'sb_publishable_TwAzUuWpiXnv8R07SGZSdg_ll4B1y2g');
+    const form = document.querySelector('#login-form');
+    const sessionView = document.querySelector('#session-view');
+    const sessionEmail = document.querySelector('#session-email');
+    const message = document.querySelector('#auth-message');
+    const passwordInput = document.querySelector('#password');
+    function render(session) {
+      const signedIn = Boolean(session);
+      form.hidden = signedIn;
+      sessionView.hidden = !signedIn;
+      sessionEmail.textContent = signedIn ? `로그인됨: ${session.user.email}` : '';
+    }
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      message.textContent = '';
+      const { error } = await supabase.auth.signInWithPassword({
+        email: form.email.value.trim(),
+        password: passwordInput.value
+      });
+      passwordInput.value = '';
+      if (error) message.textContent = '로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.';
+    });
+    document.querySelector('#logout').addEventListener('click', async () => {
+      message.textContent = '';
+      const { error } = await supabase.auth.signOut();
+      if (error) message.textContent = '로그아웃에 실패했습니다.';
+    });
+    supabase.auth.onAuthStateChange((_event, session) => render(session));
+    try {
+      const { data } = await supabase.auth.getSession();
+      render(data.session);
+    } catch {
+      render(null);
+    }
+
     const list = document.querySelector('#notes');
     try {
       const response = await fetch('/api/notes', { cache: 'no-store' });
