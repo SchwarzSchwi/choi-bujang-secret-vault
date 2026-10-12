@@ -3,9 +3,42 @@
 // 키를 응답, 로그에 노출하지 않음
 
 import { createClient } from '@supabase/supabase-js';
+import config from '../aleph.config.json' with { type: 'json' };
+import { createLoginVerifier } from '../src/verify-login.mjs';
+
+let verifier;
+function getVerifier() {
+  if (!verifier) {
+    verifier = createLoginVerifier({
+      config,
+      supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
+    });
+  }
+  return verifier;
+}
+
+function unauthorized(res) {
+  return res.status(401).json({ error: 'Unauthorized' });
+}
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // 로그인 토큰 검사: Authorization 헤더만 사용, 통과 전에는 자료를 읽지 않음
+  const authorization = req.headers?.authorization;
+  if (typeof authorization !== 'string' || !authorization) return unauthorized(res);
+  let identity = null;
+  try {
+    identity = await getVerifier().verifyLoginAuthorization(authorization);
+  } catch {
+    return unauthorized(res);
+  }
+  if (!identity) return unauthorized(res);
 
   // 환경변수 검증 (키 노출 금지)
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {

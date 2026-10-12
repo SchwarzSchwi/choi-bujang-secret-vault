@@ -30,7 +30,7 @@
   <main>
     <div class="eyebrow">BYTE BACK · 1단계 피해 확인</div>
     <h1>점령된 자료실</h1>
-    <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
+    <p>자료 API는 로그인 토큰을 검사합니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
 
     <section class="auth" aria-label="로그인">
       <p class="auth-status" id="auth-status">로그아웃 상태</p>
@@ -43,7 +43,7 @@
       <p class="auth-error" id="auth-error" role="alert"></p>
     </section>
 
-    <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 공개 범위를 확인하고, 다음 제작 단계에서 접근을 차례로 막아 주세요.</div>
+    <div class="notice">로그인한 사용자만 자료를 볼 수 있습니다. 로그인하지 않으면 자료 요청이 거부됩니다.</div>
     <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
   </main>
   <script type="module">
@@ -60,6 +60,8 @@
     const logoutBtn = document.querySelector('#logout-btn');
     const statusEl = document.querySelector('#auth-status');
     const errorEl = document.querySelector('#auth-error');
+
+    let currentSession = null;
 
     function render(session) {
       if (session) {
@@ -79,8 +81,12 @@
     } else {
       const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-      supabase.auth.onAuthStateChange((_event, session) => render(session));
+      supabase.auth.onAuthStateChange((_event, session) => {
+        render(session);
+        setTimeout(() => loadNotes(session), 0);
+      });
       const { data } = await supabase.auth.getSession();
+      currentSession = data.session;
       render(data.session);
 
       form.addEventListener('submit', async (event) => {
@@ -107,25 +113,44 @@
     }
 
     const list = document.querySelector('#notes');
-    try {
-      const response = await fetch('/api/notes', { cache: 'no-store' });
-      if (!response.ok) throw new Error('자료를 읽을 수 없습니다.');
-      const data = await response.json();
-      if (!Array.isArray(data.notes)) throw new Error('자료 형식이 맞지 않습니다.');
-      list.replaceChildren(...data.notes.map(note => {
-        const item = document.createElement('li');
-        const title = document.createElement('strong');
-        const content = document.createElement('span');
-        title.textContent = note.title;
-        content.textContent = note.content;
-        item.append(title, content);
-        return item;
-      }));
-    } catch (error) {
+    function showMessage(text) {
       const item = document.createElement('li');
-      item.textContent = error.message;
+      item.textContent = text;
       list.replaceChildren(item);
     }
+
+    async function loadNotes(session) {
+      if (!session) {
+        showMessage('로그인하면 자료를 볼 수 있습니다.');
+        return;
+      }
+      try {
+        const response = await fetch('/api/notes', {
+          cache: 'no-store',
+          headers: { Authorization: 'Bearer ' + session.access_token },
+        });
+        if (response.status === 401) {
+          showMessage('로그인하면 자료를 볼 수 있습니다.');
+          return;
+        }
+        if (!response.ok) throw new Error('자료를 읽을 수 없습니다.');
+        const data = await response.json();
+        if (!Array.isArray(data.notes)) throw new Error('자료 형식이 맞지 않습니다.');
+        list.replaceChildren(...data.notes.map(note => {
+          const item = document.createElement('li');
+          const title = document.createElement('strong');
+          const content = document.createElement('span');
+          title.textContent = note.title;
+          content.textContent = note.content;
+          item.append(title, content);
+          return item;
+        }));
+      } catch (error) {
+        showMessage(error.message);
+      }
+    }
+
+    loadNotes(currentSession);
   </script>
 </body>
 </html>
