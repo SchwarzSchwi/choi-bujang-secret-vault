@@ -16,6 +16,14 @@
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
+    .auth { margin: 26px 0; padding: 18px; border: 1px solid #51667c; border-radius: 14px; background: #1a2a3d; }
+    .auth form { display: grid; gap: 10px; }
+    .auth input { padding: 10px 12px; border-radius: 8px; border: 1px solid #51667c; background: #101a28; color: #ecf4ff; font-size: 16px; }
+    .auth button { padding: 10px 14px; border-radius: 8px; border: 0; background: #8ad8df; color: #101a28; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .auth button:disabled { opacity: .6; cursor: wait; }
+    .auth-status { margin: 0 0 12px; font-weight: 700; }
+    .auth-error { margin: 10px 0 0; color: #ff9fb0; font-size: 15px; min-height: 1.2em; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -23,10 +31,81 @@
     <div class="eyebrow">BYTE BACK · 1단계 피해 확인</div>
     <h1>점령된 자료실</h1>
     <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
+
+    <section class="auth" aria-label="로그인">
+      <p class="auth-status" id="auth-status">로그아웃 상태</p>
+      <form id="login-form">
+        <input id="email" type="email" placeholder="이메일" autocomplete="email" required>
+        <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" required>
+        <button type="submit" id="login-btn">로그인</button>
+      </form>
+      <button type="button" id="logout-btn" hidden>로그아웃</button>
+      <p class="auth-error" id="auth-error" role="alert"></p>
+    </section>
+
     <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 공개 범위를 확인하고, 다음 제작 단계에서 접근을 차례로 막아 주세요.</div>
     <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
   </main>
   <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // 공개용 값입니다 (Project URL / publishable key). 아래 값을 채워 주세요.
+    const SUPABASE_URL = '';
+    const SUPABASE_PUBLISHABLE_KEY = '';
+
+    const form = document.querySelector('#login-form');
+    const emailInput = document.querySelector('#email');
+    const passwordInput = document.querySelector('#password');
+    const loginBtn = document.querySelector('#login-btn');
+    const logoutBtn = document.querySelector('#logout-btn');
+    const statusEl = document.querySelector('#auth-status');
+    const errorEl = document.querySelector('#auth-error');
+
+    function render(session) {
+      if (session) {
+        statusEl.textContent = `로그인됨: ${session.user.email}`;
+        form.hidden = true;
+        logoutBtn.hidden = false;
+      } else {
+        statusEl.textContent = '로그아웃 상태';
+        form.hidden = false;
+        logoutBtn.hidden = true;
+      }
+    }
+
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      errorEl.textContent = 'Supabase Project URL과 publishable key가 설정되지 않았습니다.';
+      loginBtn.disabled = true;
+    } else {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      supabase.auth.onAuthStateChange((_event, session) => render(session));
+      const { data } = await supabase.auth.getSession();
+      render(data.session);
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorEl.textContent = '';
+        loginBtn.disabled = true;
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailInput.value.trim(),
+          password: passwordInput.value,
+        });
+        loginBtn.disabled = false;
+        if (error) {
+          errorEl.textContent = `로그인 실패: ${error.message}`;
+        } else {
+          passwordInput.value = '';
+        }
+      });
+
+      logoutBtn.addEventListener('click', async () => {
+        errorEl.textContent = '';
+        const { error } = await supabase.auth.signOut();
+        if (error) errorEl.textContent = `로그아웃 실패: ${error.message}`;
+      });
+    }
+
     const list = document.querySelector('#notes');
     try {
       const response = await fetch('/api/notes', { cache: 'no-store' });
