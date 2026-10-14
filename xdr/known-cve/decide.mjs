@@ -3,8 +3,6 @@
 // - import 문 없음, 파일 읽기/쓰기 없음, 바깥 호출 없음. 혼자 계산해서 바로 답한다.
 // - 아래 PATTERNS 는 xdr/known-cve/patterns.json 의 내용을 그대로 옮겨 적은 상수다.
 // - confidence(0~1)는 경보가 패턴과 얼마나 뚜렷하게 맞는지를 스스로 매긴 값이다.
-//   confidence = 0.5 * 악용 신호 + 0.3 * 패턴 일치도 + 0.2 * 경보 수준
-//   (악용 신호: 경보에 T1190 표시가 있거나 패턴이 뚜렷하게 맞을 때 1, 아니면 0)
 
 const PATTERNS = [
   {
@@ -44,15 +42,12 @@ const PATTERNS = [
 
 const BLOCK_AT = 0.85;
 const ALERT_AT = 0.5;
-const SIGNAL_WEIGHT = 0.5;
 const PATTERN_WEIGHT = 0.3;
 const LEVEL_WEIGHT = 0.2;
 const LEVEL_FLOOR = 4;
 const LEVEL_RANGE = 6;
-const CLEAR_MATCH_AT = 0.5;
-const WEAK_MATCH_AT = 0.2;
 const MITRE_TAG = 'T1190';
-const MAX_UNWRAP_ROUNDS = 5;
+const WEAK_MATCH_AT = 0.2;
 
 const SCANNER_SIGNATURES = [
   'nuclei', 'zgrab', 'masscan', 'nmap', 'nikto', 'sqlmap', 'acunetix',
@@ -95,11 +90,10 @@ function decodeText(value) {
   return out;
 }
 
-// ${lower:j} 나 ${::-j} 같은 감싸기를 풀어 낸다. 풀린 횟수가 가림 겹 수다.
 function unwrap(text) {
   let out = text;
   let layers = 0;
-  for (let i = 0; i < MAX_UNWRAP_ROUNDS; i += 1) {
+  for (let i = 0; i < 5; i += 1) {
     let changed = 0;
     out = out.replace(WRAPPER_PATTERN, (_match, inner) => {
       changed += 1;
@@ -127,7 +121,6 @@ function finiteOr(value, fallback) {
   return Number.isFinite(number) ? number : fallback;
 }
 
-// 요청 머리글 값과 인자 값을 각각 한 칸으로 본다.
 function requestFields(alert) {
   const data = asObject(asObject(alert).data);
   const headerValues = [data.useragent];
@@ -171,7 +164,6 @@ function extractFeatures(alert) {
     obfuscation_layer_count: (lookupTokenCount > 0 ? 1 : 0) + wrapperLayers,
     injected_header_count: injectedFieldCount,
     distinct_cve_path_count: cveIds.size,
-    // 경보 한 건이 묶는 시간 안의 요청 수를 분당 요청 수로 본다. 값이 따로 오면 그 값을 쓴다.
     requests_per_minute: finiteOr(data.requests_per_minute, repeatCount),
     scanner_signature_count: countTokens(joined, SCANNER_SIGNATURES),
     command_token_count: countTokens(joined, COMMAND_TOKENS),
@@ -192,7 +184,6 @@ function conditionScore(value, condition) {
   return 0;
 }
 
-// 관측되지 않은 값(null)은 건너뛰고, 첫 조건 값이 없으면 맞지 않는 것으로 본다.
 function scorePattern(pattern, features) {
   let total = 0;
   let known = 0;
@@ -228,16 +219,10 @@ export function decide(alert) {
       }
     }
 
-    const signal = features.tagged || bestScore >= CLEAR_MATCH_AT ? 1 : 0;
     const levelScore = clamp((features.level - LEVEL_FLOOR) / LEVEL_RANGE, 0, 1);
-    const confidence = round2(
-      clamp(SIGNAL_WEIGHT * signal + PATTERN_WEIGHT * bestScore + LEVEL_WEIGHT * levelScore, 0, 1),
-    );
+    const confidence = round2(clamp(PATTERN_WEIGHT * bestScore + LEVEL_WEIGHT * levelScore, 0, 1));
     const action = pickAction(confidence);
-
-    let reason = 'No known-CVE exploit pattern matched';
-    if (best && bestScore >= WEAK_MATCH_AT) reason = best.name;
-    else if (features.tagged) reason = 'Tagged T1190 but no known-CVE pattern matched clearly';
+    const reason = best && bestScore >= WEAK_MATCH_AT ? best.name : 'No known-CVE exploit pattern matched';
     return { action, confidence, reason };
   } catch {
     return { action: 'record', confidence: 0, reason: 'Alert could not be evaluated' };
