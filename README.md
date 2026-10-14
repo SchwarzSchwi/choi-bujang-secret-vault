@@ -158,3 +158,9 @@
 [AGENTS.md](AGENTS.md)를 먼저 읽히고 한 번에 한 제작 단위만 요청하세요. 2단계부터는 자료 보호를 구현할 때 `public/data.json`을 복사하는 1단계 빌드 흐름을 빼야 합니다. 대신 `api/notes.js`를 통해 서버 함수에서 Supabase를 읽습니다.
 
 `src/decider.mjs`와 `src/detect.mjs`의 로컬 시험은 반 엔진이나 운영 심판의 결과가 아닙니다. 1단계 이후 제출 묶음 계약 `aleph.defense.submission.v2`는 `scripts/build-defense.mjs`를 통해 검증 결과를 Zip으로 만듭니다.
+
+## 4단계 저장점: 메모 소유자 검사
+
+`/api/notes`는 검증된 로그인 사용자 ID로 본인 메모만 조회하고 추가합니다. `/api/notes/:id`의 GET·PUT·DELETE도 DB 행의 `owner_id`를 로그인 사용자 ID와 대조하며, 수정 요청의 소유자 변경은 거부합니다. 한 건 응답은 `{id,title,body}`, 수정 입력은 `{title,body}`입니다. 허용 경로는 `aleph.config.json`의 `allowedRoutes`를 기준으로 합니다. 이 단계는 API 검사를 구현하며 DB 권한/RLS SQL은 적용하지 않습니다.
+
+저장점 제출 묶음을 다시 만들려면 커밋된 작업 트리에서 `npm run bundle`을 실행합니다. 이 명령은 설정과 자기 점검 결과를 확인해 `artifacts/submission.json`을 생성합니다. 실행은 실제 배포 상태나 운영 심판 판정을 증명하지 않습니다.
