@@ -1,0 +1,40 @@
+{
+  "schema": "aleph.xdr.patterns.v2",
+  "moduleKey": "web-injection",
+  "mitreAttack": "T1190",
+  "patterns": [
+    {
+      "id": "sql-statement-injection",
+      "name": "SQL Statement Injection In Request Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "sql_keyword_count", "operator": ">=", "value": 2 },
+        { "field": "sql_metachar_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 8 }
+      ],
+      "basis": "Cl0p exploited the MOVEit Transfer SQL injection (CVE-2023-34362) and APT41 used SQL injection against public web applications (T1190)."
+    },
+    {
+      "id": "script-tag-injection",
+      "name": "Script Tag Injection In Request Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "script_tag_count", "operator": ">=", "value": 1 },
+        { "field": "event_handler_count", "operator": ">=", "value": 0 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 }
+      ],
+      "basis": "APT28 and Winter Vivern sent script injection payloads to Roundcube webmail (CVE-2020-35730, CVE-2023-5631) to run code in victim sessions (T1190)."
+    },
+    {
+      "id": "path-traversal-repeat",
+      "name": "Repeated Parent Directory Traversal Sequences",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "traversal_sequence_count", "operator": ">=", "value": 3 },
+        { "field": "decoded_traversal_levels", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 }
+      ],
+      "basis": "APT41 exploited the Citrix ADC directory traversal (CVE-2019-19781) and UNC5221 the Ivanti Connect Secure path traversal (CVE-2023-46805) (T1190)."
+    }
+  ]
+}
