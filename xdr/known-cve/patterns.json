@@ -1,0 +1,26 @@
+{
+  "schema": "aleph.xdr.patterns.v1",
+  "moduleKey": "known-cve",
+  "patterns": [
+    {
+      "name": "cve-2021-44228-jndi-header",
+      "condition": "rule.description contains 'CVE-2021-44228' and (data.useragent matches /\\$\\{jndi:[^}]+\\}/i or any request header contains a jndi remote lookup string)",
+      "reason": "CVE-2021-44228 형태 요청이며 요청 머리글 안의 jndi 원격 조회 구문이 근거입니다."
+    },
+    {
+      "name": "cve-2021-44228-jndi-parameter",
+      "condition": "rule.description contains 'CVE-2021-44228' and (data.url contains /\\$\\{jndi:[^}]+\\}/i or any request parameter contains a jndi remote lookup string)",
+      "reason": "CVE-2021-44228 형태 요청이며 인자 안의 jndi 원격 조회 구문이 근거입니다."
+    },
+    {
+      "name": "known-vuln-probe-cve-search",
+      "condition": "rule.description mentions a known vulnerability check trace and (data.url contains 'CVE-2021-44228' or a CVE lookup phrase)",
+      "reason": "알려진 취약점 점검 도구의 흔적과 CVE-2021-44228 관련 조회가 함께 보인다는 점이 근거입니다."
+    },
+    {
+      "name": "t1190-exploit-attempt",
+      "condition": "rule.mitre includes 'T1190' and rule.description indicates exploit-style request probing",
+      "reason": "MITRE ATT&CK T1190 이며 외부 노출 서비스에 대한 악용 시도로 분류되는 점이 근거입니다."
+    }
+  ]
+}
