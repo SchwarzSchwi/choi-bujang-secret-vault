@@ -1,37 +1,40 @@
 {
-  "schema": "aleph.xdr.patterns.v1",
+  "schema": "aleph.xdr.patterns.v2",
   "moduleKey": "brute-force",
-  "mitreAttack": [
-    "T1110"
-  ],
+  "mitreAttack": "T1110",
   "patterns": [
     {
-      "name": "같은 주소의 짧은 시간 연속 로그인 실패",
-      "match": {
-        "ruleDescriptionIncludesAny": [
-          "로그인 실패",
-          "실패",
-          "같은 주소"
-        ],
-        "srcipRequired": true,
-        "timeWindowHint": "짧은 시간",
-        "repeatFailureHint": true
-      },
-      "basis": "같은 주소에서 짧은 시간에 로그인 실패가 여러 건 이어지는 형태는 T1110 무차별 대입의 대표 신호다."
+      "id": "login-failure-burst",
+      "name": "Repeated Login Failure Burst",
+      "mitreSubTechnique": "T1110.001",
+      "conditions": [
+        { "field": "failed_count", "operator": ">=", "value": 30 },
+        { "field": "window_seconds", "operator": "<=", "value": 180 },
+        { "field": "distinct_accounts", "operator": "<=", "value": 2 }
+      ],
+      "basis": "Emotet, OilRig and Dragonfly guessed passwords against few accounts with many rapid failed logins (T1110.001)."
     },
     {
-      "name": "여러 계정에 같은 비밀번호 대입",
-      "match": {
-        "ruleDescriptionIncludesAny": [
-          "여러 계정",
-          "같은 비밀번호",
-          "연속으로 넣었습니다",
-          "서로 다른 계정"
-        ],
-        "srcipRequired": true,
-        "multiAccountHint": true
-      },
-      "basis": "한 출발 주소가 여러 계정에 같은 비밀번호를 반복 시도하는 방식은 T1110 무차별 대입의 알려진 변형이다."
+      "id": "shared-password-multi-account",
+      "name": "Shared Password Across Many Accounts",
+      "mitreSubTechnique": "T1110.003",
+      "conditions": [
+        { "field": "distinct_accounts", "operator": ">=", "value": 8 },
+        { "field": "max_attempts_per_account", "operator": "<=", "value": 3 },
+        { "field": "unique_password_ratio", "operator": "<=", "value": 0.1 }
+      ],
+      "basis": "APT28, APT29 (2023-24 Microsoft mail intrusion) and APT33 sprayed one common password across many accounts (T1110.003)."
+    },
+    {
+      "id": "leaked-credential-multi-account",
+      "name": "Leaked Credential Pairs Across Many Accounts",
+      "mitreSubTechnique": "T1110.004",
+      "conditions": [
+        { "field": "distinct_accounts", "operator": ">=", "value": 10 },
+        { "field": "max_attempts_per_account", "operator": "<=", "value": 2 },
+        { "field": "unique_password_ratio", "operator": ">=", "value": 0.9 }
+      ],
+      "basis": "Chimera and the 2023 23andMe incident replayed leaked username/password pairs, one attempt per account (T1110.004)."
     }
   ]
 }
