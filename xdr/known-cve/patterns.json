@@ -1,26 +1,40 @@
 {
-  "schema": "aleph.xdr.patterns.v1",
+  "schema": "aleph.xdr.patterns.v2",
   "moduleKey": "known-cve",
+  "mitreAttack": "T1190",
   "patterns": [
     {
-      "name": "cve-2021-44228-jndi-header",
-      "condition": "rule.description contains 'CVE-2021-44228' and (data.useragent matches /\\$\\{jndi:[^}]+\\}/i or any request header contains a jndi remote lookup string)",
-      "reason": "CVE-2021-44228 형태 요청이며 요청 머리글 안의 jndi 원격 조회 구문이 근거입니다."
+      "id": "remote-lookup-header-injection",
+      "name": "Remote Lookup Or Expression Injection In Request Headers And Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "lookup_token_count", "operator": ">=", "value": 1 },
+        { "field": "obfuscation_layer_count", "operator": ">=", "value": 2 },
+        { "field": "injected_header_count", "operator": ">=", "value": 2 }
+      ],
+      "basis": "Log4Shell (CVE-2021-44228) attacks by Khonsari and Night Sky ransomware operators planted nested JNDI lookups in User-Agent and other headers, and Confluence OGNL injection (CVE-2022-26134) used the same request-side pattern (T1190)."
     },
     {
-      "name": "cve-2021-44228-jndi-parameter",
-      "condition": "rule.description contains 'CVE-2021-44228' and (data.url contains /\\$\\{jndi:[^}]+\\}/i or any request parameter contains a jndi remote lookup string)",
-      "reason": "CVE-2021-44228 형태 요청이며 인자 안의 jndi 원격 조회 구문이 근거입니다."
+      "id": "known-cve-scanner-trace",
+      "name": "Known Vulnerability Scanner And Mass Probe Traces",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "distinct_cve_path_count", "operator": ">=", "value": 3 },
+        { "field": "requests_per_minute", "operator": ">=", "value": 30 },
+        { "field": "scanner_signature_count", "operator": ">=", "value": 1 }
+      ],
+      "basis": "Mass scanning for Citrix ADC (CVE-2019-19781) and Exchange ProxyLogon (CVE-2021-26855) began within days of disclosure, and Hafnium probed many Exchange servers before exploiting them (T1190)."
     },
     {
-      "name": "known-vuln-probe-cve-search",
-      "condition": "rule.description mentions a known vulnerability check trace and (data.url contains 'CVE-2021-44228' or a CVE lookup phrase)",
-      "reason": "알려진 취약점 점검 도구의 흔적과 CVE-2021-44228 관련 조회가 함께 보인다는 점이 근거입니다."
-    },
-    {
-      "name": "t1190-exploit-attempt",
-      "condition": "rule.mitre includes 'T1190' and rule.description indicates exploit-style request probing",
-      "reason": "MITRE ATT&CK T1190 이며 외부 노출 서비스에 대한 악용 시도로 분류되는 점이 근거입니다."
+      "id": "exploit-to-code-execution-chain",
+      "name": "Exploit Request Followed By Web Shell Or Command Execution",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "command_token_count", "operator": ">=", "value": 1 },
+        { "field": "script_file_write_count", "operator": ">=", "value": 1 },
+        { "field": "seconds_to_follow_up", "operator": "<=", "value": 60 }
+      ],
+      "basis": "Hafnium chained Exchange CVE-2021-26855 and CVE-2021-27065 to drop China Chopper web shells, and Mirai botnet operators used Spring4Shell (CVE-2022-22965) to write a JSP web shell and run commands (T1190)."
     }
   ]
 }
