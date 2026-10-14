@@ -1,0 +1,167 @@
+{
+  "schema": "aleph.xdr.result.v1",
+  "moduleKey": "web-injection",
+  "decisions": [
+    {
+      "alertId": "wi-01",
+      "action": "alert",
+      "confidence": 0.8,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-02",
+      "action": "alert",
+      "confidence": 0.8,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-03",
+      "action": "alert",
+      "confidence": 0.76,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-04",
+      "action": "alert",
+      "confidence": 0.8,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-05",
+      "action": "alert",
+      "confidence": 0.72,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-06",
+      "action": "alert",
+      "confidence": 0.76,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-07",
+      "action": "alert",
+      "confidence": 0.8,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-08",
+      "action": "alert",
+      "confidence": 0.72,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-09",
+      "action": "record",
+      "confidence": 0.45,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-10",
+      "action": "record",
+      "confidence": 0.41,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-11",
+      "action": "record",
+      "confidence": 0.49,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-12",
+      "action": "record",
+      "confidence": 0.45,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-13",
+      "action": "record",
+      "confidence": 0.41,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-14",
+      "action": "record",
+      "confidence": 0.49,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-15",
+      "action": "record",
+      "confidence": 0.45,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-16",
+      "action": "alert",
+      "confidence": 0.53,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-17",
+      "action": "record",
+      "confidence": 0.45,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-18",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-19",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-20",
+      "action": "record",
+      "confidence": 0.29,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-21",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-22",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-23",
+      "action": "record",
+      "confidence": 0.29,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-24",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-25",
+      "action": "record",
+      "confidence": 0.33,
+      "reason": "Script Tag Injection In Request Parameters"
+    },
+    {
+      "alertId": "wi-26",
+      "action": "record",
+      "confidence": 0.29,
+      "reason": "Script Tag Injection In Request Parameters"
+    }
+  ],
+  "counts": {
+    "block": 0,
+    "alert": 9,
+    "record": 17
+  }
+}
