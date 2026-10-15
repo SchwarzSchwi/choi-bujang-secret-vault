@@ -9,10 +9,10 @@
       "mitreSubTechnique": "T1190",
       "conditions": [
         { "field": "sql_keyword_count", "operator": ">=", "value": 2 },
-        { "field": "sql_metachar_count", "operator": ">=", "value": 1 },
-        { "field": "repeat_count", "operator": ">=", "value": 8 }
+        { "field": "repeat_count", "operator": ">=", "value": 8 },
+        { "field": "level", "operator": ">=", "value": 10 }
       ],
-      "basis": "Cl0p exploited the MOVEit Transfer SQL injection (CVE-2023-34362) and APT41 used SQL injection against public web applications (T1190)."
+      "basis": "APT41 used SQL injection for initial access in C0017, APT28, APT39, Axiom, Agrius, Dragonfly, Night Dragon and Operation Digital Eye used SQL injection, and Havij and sqlmap automate it (T1190)."
     },
     {
       "id": "script-tag-injection",
@@ -20,21 +20,98 @@
       "mitreSubTechnique": "T1190",
       "conditions": [
         { "field": "script_tag_count", "operator": ">=", "value": 1 },
-        { "field": "event_handler_count", "operator": ">=", "value": 0 },
-        { "field": "repeat_count", "operator": ">=", "value": 5 }
+        { "field": "repeat_count", "operator": ">=", "value": 5 },
+        { "field": "level", "operator": ">=", "value": 10 }
       ],
-      "basis": "APT28 and Winter Vivern sent script injection payloads to Roundcube webmail (CVE-2020-35730, CVE-2023-5631) to run code in victim sessions (T1190)."
+      "basis": "Winter Vivern exploited Roundcube Webmail servers and the page cites the OWASP top 10 web flaws, no CVE for script injection is named on the page (T1190)."
     },
     {
-      "id": "path-traversal-repeat",
-      "name": "Repeated Parent Directory Traversal Sequences",
+      "id": "command-injection-marker",
+      "name": "Operating System Command Injection Markers",
       "mitreSubTechnique": "T1190",
       "conditions": [
-        { "field": "traversal_sequence_count", "operator": ">=", "value": 3 },
-        { "field": "decoded_traversal_levels", "operator": ">=", "value": 2 },
-        { "field": "repeat_count", "operator": ">=", "value": 5 }
+        { "field": "command_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 },
+        { "field": "level", "operator": ">=", "value": 10 }
       ],
-      "basis": "APT41 exploited the Citrix ADC directory traversal (CVE-2019-19781) and UNC5221 the Ivanti Connect Secure path traversal (CVE-2023-46805) (T1190)."
+      "basis": "Cutting Edge exploited Ivanti Connect Secure command injection (CVE-2024-21887) and the Mexico government breach used remote command execution on an internet-facing server (T1190)."
+    },
+    {
+      "id": "path-traversal-sequence",
+      "name": "Directory Traversal Sequences In Request Paths",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "traversal_sequence_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 },
+        { "field": "level", "operator": ">=", "value": 10 }
+      ],
+      "basis": "APT41 exploited Citrix ADC directory traversal (CVE-2019-19781) and traversal flaws in C0017, APT29 and Dragonfly reused CVE-2019-19781 and FortiOS CVE-2018-13379 (T1190)."
+    },
+    {
+      "id": "remote-lookup-string",
+      "name": "Remote Lookup String In Request Headers Or Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "remote_lookup_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 },
+        { "field": "level", "operator": ">=", "value": 9 }
+      ],
+      "basis": "APT41 in C0017, C0018, Magic Hound and Cinnamon Tempest exploited Log4Shell (CVE-2021-44228) through remote lookup strings (T1190)."
+    },
+    {
+      "id": "serialized-object-payload",
+      "name": "Serialized Object Payload In Request Data",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "serialized_marker_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 },
+        { "field": "level", "operator": ">=", "value": 9 }
+      ],
+      "basis": "APT41 exploited Zoho ManageEngine unsafe deserialization (CVE-2020-10189), Blue Mockingbird exploited Telerik CVE-2019-18935 and FIN13 used WebSphere SOAP deserialization CVE-2015-7450 (T1190)."
+    },
+    {
+      "id": "expression-language-injection",
+      "name": "Expression Language Injection In Request Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "expression_marker_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 },
+        { "field": "level", "operator": ">=", "value": 9 }
+      ],
+      "basis": "FIN13 exploited Primefaces expression language injection (CVE-2017-1000486), Ember Bear exploited Confluence CVE-2021-26084 and Rocke exploited Apache Struts (T1190)."
+    },
+    {
+      "id": "ssrf-internal-target",
+      "name": "Server Side Request Forgery Toward Internal Targets",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "ssrf_target_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 },
+        { "field": "level", "operator": ">=", "value": 8 }
+      ],
+      "basis": "Cutting Edge chained Ivanti SSRF CVE-2024-21893, the Anthropic AI-orchestrated Campaign targeted an SSRF flaw, and the page names the Cloud Instance Metadata API as a follow-up (T1190)."
+    },
+    {
+      "id": "vulnerability-scanner-trace",
+      "name": "Known Vulnerability Scanner Or Checking Tool Trace",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "scanner_signature_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 10 },
+        { "field": "level", "operator": ">=", "value": 6 }
+      ],
+      "basis": "sqlmap and Havij are listed as automated SQL injection tools and Volatile Cedar used automatic vulnerability discovery against public web servers (T1190)."
+    },
+    {
+      "id": "exploit-request-then-web-shell",
+      "name": "Known Exploit Endpoint Followed By Web Shell Or Command Execution",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "exploit_endpoint_count", "operator": ">=", "value": 1 },
+        { "field": "webshell_marker_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 2 }
+      ],
+      "basis": "SharePoint ToolShell Exploitation used crafted POST requests to ToolPane.aspx (CVE-2025-49704), the Mexico breach planted a web shell, and BlackByte and APT41 used ProxyLogon and ProxyShell (T1190)."
     }
   ]
 }
