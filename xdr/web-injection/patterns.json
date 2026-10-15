@@ -35,6 +35,137 @@
         { "field": "repeat_count", "operator": ">=", "value": 5 }
       ],
       "basis": "APT41 exploited the Citrix ADC directory traversal (CVE-2019-19781) and UNC5221 the Ivanti Connect Secure path traversal (CVE-2023-46805) (T1190)."
+    },
+    {
+      "id": "jndi-lookup-injection",
+      "name": "JNDI Lookup Injection (Log4Shell Style)",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "jndi_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "C0018 and Magic Hound exploited Log4Shell (CVE-2021-44228) in VMware Horizon and Log4j; APT41 did so during C0017 (T1190)."
+    },
+    {
+      "id": "expression-language-injection",
+      "name": "OGNL / Expression Language Injection",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "expression_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Rocke exploited Apache Struts, FIN13 exploited Primefaces EL injection (CVE-2017-1000486), and Ember Bear exploited Confluence OGNL (CVE-2021-26084) (T1190)."
+    },
+    {
+      "id": "unsafe-deserialization",
+      "name": "Unsafe Object Deserialization Payload",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "deserialization_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "APT41 exploited Zoho ManageEngine unsafe deserialization (CVE-2020-10189) and .NET deserialization; FIN13 abused WebSphere SOAP deserialization (CVE-2015-7450); Blue Mockingbird exploited Telerik (CVE-2019-18935) (T1190)."
+    },
+    {
+      "id": "command-injection",
+      "name": "OS Command Injection In Request Parameters",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "command_marker_count", "operator": ">=", "value": 2 },
+        { "field": "shell_metachar_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Cutting Edge threat actors used Ivanti Connect Secure command injection (CVE-2024-21887); Rocke and Quad7 achieved remote code execution via exposed services and SOHO routers (T1190)."
+    },
+    {
+      "id": "ssrf-internal-fetch",
+      "name": "Server-Side Request Forgery To Internal Resources",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "ssrf_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Anthropic AI-orchestrated Campaign used a custom exploit for an SSRF vulnerability, and ProxyLogon (CVE-2021-26855) is an SSRF used by Threat Group-3390, HAFNIUM, ToddyCat and BlackByte (T1190)."
+    },
+    {
+      "id": "exchange-proxy-exploit",
+      "name": "Microsoft Exchange ProxyLogon / ProxyShell Request Paths",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "exchange_path_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "APT28, Threat Group-3390, HAFNIUM, Magic Hound, Play and BlackByte exploited Exchange (CVE-2020-0688, ProxyLogon, ProxyShell, ProxyNotShell) (T1190)."
+    },
+    {
+      "id": "sharepoint-exploit",
+      "name": "Microsoft SharePoint Exploit Request Paths",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "sharepoint_path_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Threat Group-3390, VOID MANTICORE, HomeLand Justice and SharePoint ToolShell Exploitation exploited SharePoint (CVE-2019-0604, CVE-2025-49706, CVE-2025-49704) (T1190)."
+    },
+    {
+      "id": "edge-vpn-appliance-exploit",
+      "name": "VPN / Edge Appliance Exploit Request Paths",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "edge_path_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "APT29, APT5, Volt Typhoon, Fox Kitten, UNC3886, Operation MidnightEclipse and Salt Typhoon exploited Citrix, Pulse/Ivanti, FortiOS, Palo Alto GlobalProtect and Cisco devices (T1190)."
+    },
+    {
+      "id": "auth-bypass-path-confusion",
+      "name": "Authentication Bypass By Path Confusion",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "auth_bypass_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Cutting Edge used Ivanti authentication bypass (CVE-2023-46805), SharePoint ToolShell used authentication bypass (CVE-2025-49706), and the Fortinet CVE-2022-40684 style bypass abuses path handling (T1190)."
+    },
+    {
+      "id": "web-shell-upload",
+      "name": "Web Shell Upload Or Execution Request",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "webshell_marker_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "Public-facing servers (JBoss, WebLogic, GlassFish, Exchange, Confluence) exploited by Operation Wocao, GOLD SOUTHFIELD, Earth Lusca and Cinnamon Tempest were followed by web shell deployment (T1190)."
+    },
+    {
+      "id": "exposed-service-probe",
+      "name": "Probe Of Exposed Network Service Or Management Protocol",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "exposed_service_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 }
+      ],
+      "basis": "T1190 covers databases, SMB, SSH, SNMP and Smart Install exposed to the Internet; Qilin was delivered via exposed Citrix and RDP (T1190)."
+    },
+    {
+      "id": "exposed-admin-misconfiguration",
+      "name": "Exposed Admin Interface Or Misconfiguration Probe",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "exposed_admin_count", "operator": ">=", "value": 2 },
+        { "field": "repeat_count", "operator": ">=", "value": 3 }
+      ],
+      "basis": "ShadowRay exploited exposed Ray servers (CVE-2023-48022) and TeamPCP abused misconfigured GitHub Actions and cloud services (T1190)."
+    },
+    {
+      "id": "automated-exploit-tool",
+      "name": "Automated Exploitation Tool Signature",
+      "mitreSubTechnique": "T1190",
+      "conditions": [
+        { "field": "tool_signature_count", "operator": ">=", "value": 1 },
+        { "field": "repeat_count", "operator": ">=", "value": 5 }
+      ],
+      "basis": "sqlmap and Havij automate SQL injection, Volatile Cedar used automatic vulnerability discovery, and Anthropic AI-orchestrated Campaign automated exploitation with Claude Code (T1190)."
     }
   ]
 }
