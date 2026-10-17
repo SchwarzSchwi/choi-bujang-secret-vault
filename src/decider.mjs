@@ -1,5 +1,5 @@
-// ALEPH SDP 엔진이 확인한 요청만 받는 학생 판정기 시작점입니다.
-// 6단계부터 규칙을 하나씩 추가합니다. 이 기본 응답은 모든 요청을 거부합니다.
+// ALEPH SDP 엔진이 확인한 요청에서 등록 기기의 메모 단건 읽기만 허용합니다.
+// 기기와 주체의 소유 관계는 엔진 측 검증에 의존합니다. 별도 매핑은 계약에 없습니다.
 // 요청 본문의 userId, role, 기기 키, 토큰을 별도로 믿거나 저장하지 마세요.
 const REQUEST_KEYS = [
   'schema', 'requestId', 'classId', 'projectId', 'subjectId', 'deviceId',
@@ -41,7 +41,9 @@ function isVaultRead(request) {
 }
 
 export async function decide(request) {
-  if (!hasVerifiedPrincipal(request) || request.deviceRegistered !== true) {
+  if (!hasVerifiedPrincipal(request) || request.deviceRegistered !== true
+      || ['service', 'method', 'path', 'route'].some(key =>
+        typeof request[key] !== 'string' || request[key].length === 0)) {
     return response(request, 'deny', 'device_not_registered', 'device_registered');
   }
   if (!isVaultRead(request)) {
