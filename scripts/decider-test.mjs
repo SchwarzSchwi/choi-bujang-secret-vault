@@ -24,10 +24,28 @@ export async function checkDecider({ decide, ruleIds }) {
     throw new Error('6단계 device_registered 규칙을 먼저 구현하고 RULE_IDS에 적어 주세요.');
   }
   const { normal, suspicious } = fixtureRequests();
+  const missingRegistration = { ...normal, requestId: randomUUID() };
+  delete missingRegistration.deviceRegistered;
   const checks = [
-    { name: '등록 기기의 정상 요청', request: normal, decision: 'allow' },
+    { name: '등록 기기의 정상 요청', request: normal, decision: 'allow',
+      reasonCode: 'approved', ruleId: 'device_registered' },
     { name: '미등록 기기의 가상 요청', request: { ...normal, requestId: randomUUID(),
-      deviceRegistered: false }, decision: 'deny', reasonCode: 'device_not_registered' },
+      deviceRegistered: false }, decision: 'deny', reasonCode: 'device_not_registered',
+    ruleId: 'device_registered' },
+    { name: '등록 여부 누락', request: missingRegistration, decision: 'deny',
+      reasonCode: 'device_not_registered', ruleId: 'device_registered' },
+    { name: '등록 여부가 불리언이 아님', request: { ...normal, requestId: randomUUID(),
+      deviceRegistered: 'true' }, decision: 'deny', reasonCode: 'device_not_registered',
+    ruleId: 'device_registered' },
+    { name: '확인된 주체 누락', request: { ...normal, requestId: randomUUID(),
+      subjectId: '' }, decision: 'deny', reasonCode: 'device_not_registered',
+    ruleId: 'device_registered' },
+    { name: '읽기 경로 누락', request: { ...normal, requestId: randomUUID(),
+      path: '' }, decision: 'deny', reasonCode: 'device_not_registered',
+    ruleId: 'device_registered' },
+    { name: '읽기가 아닌 동작', request: { ...normal, requestId: randomUUID(),
+      method: 'POST', route: 'POST /notes/:id' }, decision: 'deny',
+    reasonCode: 'starter_not_ready', ruleId: 'starter.deny' },
   ];
   if (ruleIds.includes('step_up_required')) {
     checks.push(
@@ -43,8 +61,10 @@ export async function checkDecider({ decide, ruleIds }) {
     const response = await decide(item.request);
     const valid = validResponse(item.request, response, ruleIds)
       && response.decision === item.decision
-      && (!item.reasonCode || response.reasonCode === item.reasonCode);
-    results.push({ name: item.name, passed: valid });
+      && (!item.reasonCode || response.reasonCode === item.reasonCode)
+      && (!item.ruleId || response.ruleIds.includes(item.ruleId));
+    results.push({ name: item.name, passed: valid,
+      decision: response?.decision, reasonCode: response?.reasonCode });
   }
   return results;
 }
@@ -53,7 +73,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const { decide, RULE_IDS } = await import('../src/decider.mjs');
     const results = await checkDecider({ decide, ruleIds: RULE_IDS });
-    for (const item of results) process.stdout.write(`${item.passed ? '통과' : '확인 필요'} · ${item.name}\n`);
+    for (const item of results) process.stdout.write(
+      `${item.passed ? '통과' : '확인 필요'} · ${item.name}: ${item.decision}/${item.reasonCode}\n`);
     process.stdout.write('이 명령은 가상 요청으로 연습하며 심판 통과 증거가 아닙니다.\n');
     if (results.some(item => !item.passed)) process.exitCode = 1;
   } catch (error) {
